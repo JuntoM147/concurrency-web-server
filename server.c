@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 int main() {
         struct sockaddr_in server_addr;
@@ -34,13 +35,19 @@ int main() {
 
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
-        char buffer[64];
+        char buffer[1024];
+        char *msg = "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/plain\r\n"
+                "Content-Length: 12\r\n"
+                "\r\n"
+                "Hello World!";
         
         while (1) {
                 int new_socket = accept(server_socket, (struct sockaddr *) &client_addr, &client_len);
 
-                read(new_socket, buffer, 64);
+                read(new_socket, buffer, 1024);
                 printf("Recieved: %s\n", buffer);
+                write(new_socket, msg, strlen(msg));
         }
 
         if (close(server_socket) < 0) {
