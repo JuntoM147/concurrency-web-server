@@ -1,5 +1,6 @@
 #include "server_addr.h"
 #include "handle_conn/handler.h"
+#include "queue/queue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -44,7 +45,12 @@ int main() {
 
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
-        pthread_t thread;
+
+        // Create thread pool
+        pthread_t thread_pool[8];
+
+        // Create queue
+        queue *requests = queue_init();
 
         // Main loop
         while (1) {
