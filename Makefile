@@ -2,9 +2,10 @@ CC=clang
 CFLAGS=-Wall -Wextra
 SERVER_DIR=src/server
 HANDLER_DIR=src/server/handle_conn
+QUEUE_DIR=src/server/queue
 
-server: server.o handler.o parser.o send_error.o serve_file.o extract_path.o
-	$(CC) $(CFLAGS) server.o handler.o parser.o send_error.o serve_file.o extract_path.o -o server
+server: server.o handler.o parser.o send_error.o serve_file.o extract_path.o queue.o
+	$(CC) $(CFLAGS) server.o handler.o parser.o send_error.o serve_file.o extract_path.o queue.o -o server
 
 server.o: $(SERVER_DIR)/server.c
 	$(CC) $(CFLAGS) -c $(SERVER_DIR)/server.c -o server.o
@@ -23,6 +24,9 @@ serve_file.o: $(HANDLER_DIR)/serve_file.c
 
 extract_path.o: $(HANDLER_DIR)/extract_path.c
 	$(CC) $(CFLAGS) -c $(HANDLER_DIR)/extract_path.c -o extract_path.o
+
+queue.o: $(QUEUE_DIR)/queue.c
+	$(CC) $(CFLAGS) -c $(QUEUE_DIR)/queue.c -o queue.o
 
 clean:
 	rm -f *.o server

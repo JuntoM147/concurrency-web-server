@@ -6,7 +6,6 @@
 #include <unistd.h>
 
 void handle_connection(int socket) {
-        sleep(3);
         // Read request
         char raw_request[1024];
         read(socket, raw_request, 1024);
