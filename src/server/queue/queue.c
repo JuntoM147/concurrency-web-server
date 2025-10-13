@@ -17,6 +17,8 @@ queue *queue_init() {
 }
 
 void enqueue(queue *q, int socket) {
+        pthread_mutex_lock(&(q->lock));
+
         struct Node* element = malloc(sizeof(struct Node));
         element->next = NULL;
         element->socket = socket;
@@ -24,18 +26,25 @@ void enqueue(queue *q, int socket) {
         if (q->size == 0) {
                 q->head = element;
                 q->tail = element;
-                q->size++;
-                return;
+        } else {
+                struct Node* prev_tail = q->tail;
+                q->tail = element;
+                prev_tail->next = element;
         }
 
-        struct Node* prev_tail = q->tail;
-        q->tail = element;
-        prev_tail->next = element;
         q->size++;
+
+        pthread_cond_signal(&(q->not_empty));
+
+        pthread_mutex_unlock(&(q->lock));
 }
 
 int dequeue(queue *q) {
-        assert(q->size > 0);
+        pthread_mutex_lock(&(q->lock));
+
+        while (q->size == 0) {
+                pthread_cond_wait(&(q->not_empty), &(q->lock));
+        }
 
         struct Node *old_head = q->head;
         int socket = old_head->socket;
@@ -48,6 +57,8 @@ int dequeue(queue *q) {
         if (q->size == 0) {
                 q->tail = NULL;
         }
+
+        pthread_mutex_unlock(&(q->lock));
 
         return socket;
 }
@@ -63,7 +74,7 @@ void print_queue(const queue *q) {
         printf("NULL\n");
 }
 
-int size(queue *q) {
+int size(const queue *q) {
         return q->size;
 }
 
@@ -75,5 +86,8 @@ void free_queue(queue *q) {
                 free(curr);
                 curr = tmp;
         }
+
+        pthread_mutex_destroy(&(q->lock));
+        pthread_cond_destroy(&(q->not_empty));
         free(q);
 }
